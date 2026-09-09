@@ -1,0 +1,96 @@
+{
+  "uid": "dentline-overview",
+  "title": "Dentline — bookings & waitlist",
+  "tags": ["dentline"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Bookings (since start)",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum(dentline_appointments_total{event=\"BOOKED\"})" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "#0E7C7B" }, "decimals": 0 }, "overrides": [] }
+    },
+    {
+      "id": 2, "type": "stat", "title": "Cancellations (since start)",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum(dentline_cancellations_total)" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "#D99A2B" }, "decimals": 0 }, "overrides": [] }
+    },
+    {
+      "id": 3, "type": "gauge", "title": "No-show rate (rolling 30 d)",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "dentline_no_show_rate" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 0.3, "decimals": 1, "thresholds": { "mode": "absolute", "steps": [ { "color": "#0E7C7B", "value": null }, { "color": "#D99A2B", "value": 0.05 }, { "color": "#B3261E", "value": 0.1 } ] } }, "overrides": [] }
+    },
+    {
+      "id": 4, "type": "gauge", "title": "Offer acceptance rate",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "dentline_waitlist_offer_acceptance_rate" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1, "decimals": 0, "thresholds": { "mode": "absolute", "steps": [ { "color": "#B3261E", "value": null }, { "color": "#D99A2B", "value": 0.4 }, { "color": "#0E7C7B", "value": 0.7 } ] } }, "overrides": [] }
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Appointment events per 5 min, by type",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by (event) (increase(dentline_appointments_total[5m]))", "legendFormat": "{{event}}" }],
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "stacking": { "mode": "normal" }, "fillOpacity": 80 }, "decimals": 0 }, "overrides": [] }
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "Booking latency (p50 / p95 / p99)",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "histogram_quantile(0.50, sum by (le) (rate(dentline_booking_latency_seconds_bucket[5m])))", "legendFormat": "p50" },
+        { "refId": "B", "expr": "histogram_quantile(0.95, sum by (le) (rate(dentline_booking_latency_seconds_bucket[5m])))", "legendFormat": "p95" },
+        { "refId": "C", "expr": "histogram_quantile(0.99, sum by (le) (rate(dentline_booking_latency_seconds_bucket[5m])))", "legendFormat": "p99" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10 } }, "overrides": [] }
+    },
+    {
+      "id": 7, "type": "timeseries", "title": "Waitlist offers per 5 min, by outcome",
+      "gridPos": { "x": 0, "y": 12, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by (outcome) (increase(dentline_waitlist_offers_total[5m]))", "legendFormat": "{{outcome}}" }],
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "stacking": { "mode": "normal" }, "fillOpacity": 80 }, "decimals": 0 }, "overrides": [] }
+    },
+    {
+      "id": 8, "type": "timeseries", "title": "Patients queued on the waitlist",
+      "gridPos": { "x": 8, "y": 12, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "dentline_waitlist_queued", "legendFormat": "queued" }],
+      "fieldConfig": { "defaults": { "decimals": 0, "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 20 }, "color": { "mode": "fixed", "fixedColor": "#0E7C7B" } }, "overrides": [] }
+    },
+    {
+      "id": 9, "type": "timeseries", "title": "Notifications per 5 min, by type (notification-service)",
+      "gridPos": { "x": 16, "y": 12, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by (type) (increase(dentline_notifications_total[5m]))", "legendFormat": "{{type}}" }],
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "stacking": { "mode": "normal" }, "fillOpacity": 80 }, "decimals": 0 }, "overrides": [] }
+    },
+    {
+      "id": 10, "type": "timeseries", "title": "HTTP requests per second, by service and status",
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by (application, status) (rate(http_server_requests_seconds_count{uri=~\"/api/.*\"}[5m]))", "legendFormat": "{{application}} {{status}}" }],
+      "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 10 } }, "overrides": [] }
+    },
+    {
+      "id": 11, "type": "timeseries", "title": "JVM heap used",
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by (application) (jvm_memory_used_bytes{area=\"heap\"})", "legendFormat": "{{application}}" }],
+      "fieldConfig": { "defaults": { "unit": "bytes", "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 10 } }, "overrides": [] }
+    }
+  ]
+}

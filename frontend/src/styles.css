@@ -1,0 +1,70 @@
+/* Global styles ported from the two design prototypes. Component styling is inline, as in the design. */
+
+html, body, #root { margin: 0; min-height: 100%; }
+body { -webkit-font-smoothing: antialiased; font-family: Inter, system-ui, sans-serif; color: #1E2A32; }
+a { color: #0E7C7B; }
+a:hover { color: #0a5f5e; }
+button { font-family: inherit; }
+*:focus-visible { outline: 2.5px solid #0E7C7B; outline-offset: 2px; border-radius: 4px; }
+
+@keyframes dl-shimmer { 0% { opacity: .45 } 50% { opacity: 1 } 100% { opacity: .45 } }
+@keyframes dl-up { from { transform: translateY(14px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+@keyframes dl-up-s { from { transform: translateY(12px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+@keyframes dl-in { from { transform: translateX(24px); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
+@keyframes dl-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes dl-pop { 0% { transform: scale(.6); opacity: 0 } 60% { transform: scale(1.06) } 100% { transform: scale(1); opacity: 1 } }
+@keyframes dl-pulse { 0% { box-shadow: 0 0 0 0 rgba(14,124,123,.42) } 70% { box-shadow: 0 0 0 7px rgba(14,124,123,0) } 100% { box-shadow: 0 0 0 0 rgba(14,124,123,0) } }
+@keyframes dl-pulse-amber { 0% { box-shadow: 0 0 0 0 rgba(217,154,43,.45) } 70% { box-shadow: 0 0 0 7px rgba(217,154,43,0) } 100% { box-shadow: 0 0 0 0 rgba(217,154,43,0) } }
+@keyframes dl-grow { from { transform: scaleY(.6); opacity: 0 } to { transform: scaleY(1); opacity: 1 } }
+
+button { transition: transform .16s cubic-bezier(.2,.7,.3,1), box-shadow .2s ease, background-color .16s ease, border-color .16s ease, color .16s ease, filter .16s ease; }
+input { transition: border-color .16s ease, box-shadow .16s ease; }
+input:focus { box-shadow: 0 0 0 3px rgba(14,124,123,.14); }
+
+/* --- patient --- */
+.patient-app { background: #EEF1F3; }
+.patient-app button:not(:disabled):active { transform: scale(.982); }
+[data-stagger] > * { animation: dl-up .36s cubic-bezier(.2,.7,.3,1) both; }
+[data-stagger] > *:nth-child(2) { animation-delay: .045s; }
+[data-stagger] > *:nth-child(3) { animation-delay: .09s; }
+[data-stagger] > *:nth-child(4) { animation-delay: .135s; }
+[data-stagger] > *:nth-child(5) { animation-delay: .18s; }
+[data-stagger] > *:nth-child(6) { animation-delay: .225s; }
+
+.p-card:hover { border-color: #0E7C7B !important; box-shadow: 0 8px 20px rgba(14,124,123,.16) !important; transform: translateY(-2px); }
+.p-primary:hover { background: #0a5f5e !important; }
+.p-secondary:hover { background: #F2F6F8 !important; }
+.p-outline-teal:hover { background: #D6F2F0 !important; }
+.p-danger-outline:hover { background: #FDF3F2 !important; }
+.p-danger:hover { background: #8f1e18 !important; }
+.p-slot:hover { background: #0E7C7B !important; color: #FFF !important; border-color: #0E7C7B !important; transform: translateY(-2px); box-shadow: 0 6px 14px rgba(14,124,123,.22); }
+.p-back:hover { background: #D6F2F0 !important; }
+
+/* --- staff --- */
+.staff-app { background: #FAFBFC; }
+.staff-app button:not(:disabled):active { transform: scale(.985); }
+[data-stagger-s] > * { animation: dl-up-s .34s cubic-bezier(.2,.7,.3,1) both; }
+[data-stagger-s] > *:nth-child(2) { animation-delay: .05s; }
+[data-stagger-s] > *:nth-child(3) { animation-delay: .1s; }
+[data-stagger-s] > *:nth-child(4) { animation-delay: .15s; }
+[data-appt] > button { animation: dl-grow .3s cubic-bezier(.2,.7,.3,1) both; transform-origin: top center; }
+
+.s-nav:hover { background: #D6F2F0 !important; }
+.s-metric:hover { box-shadow: 0 6px 18px rgba(30,42,50,.09); transform: translateY(-2px); }
+.s-block:hover { filter: brightness(.98); box-shadow: 0 6px 16px rgba(30,42,50,.15); transform: translateY(-1px); }
+.s-week-block:hover { filter: brightness(.97); }
+.s-action:not(:disabled):hover { filter: brightness(.97); }
+.s-btn:hover { background: #D6F2F0 !important; }
+.s-secondary:hover { background: #F2F6F8 !important; }
+.s-cta:hover { filter: brightness(.92); }
+.s-close:hover { background: #F2F6F8 !important; }
+
+@media (max-width: 1100px) {
+  .s-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .s-calendar-scroll { overflow-x: auto; }
+  .s-calendar-scroll > * { min-width: 900px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

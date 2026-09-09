@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: booking-service
+  datasource:
+    url: ${BOOKING_DB_URL:jdbc:postgresql://localhost:5432/booking}
+    username: ${DB_USER:dentline}
+    password: ${DB_PASSWORD:dentline}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      acks: all
+    consumer:
+      group-id: booking-service
+      auto-offset-reset: earliest
+
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+dentline:
+  timezone: Europe/Oslo
+  clinic:
+    name: Dentline Majorstuen
+    address-line1: Kirkeveien 64B
+    address-line2: 0364 Oslo
+  availability:
+    slot-step-minutes: 15
+    max-range-days: 31
+  waitlist:
+    offer-hold-minutes: 15
+    manual-offer-search-days: 14
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  seed:
+    enabled: ${DENTLINE_SEED:false}

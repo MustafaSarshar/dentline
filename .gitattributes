@@ -1,0 +1,5 @@
+# Normalise line endings so shell scripts and Dockerfiles work on every checkout.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.png binary
+*.jar binary

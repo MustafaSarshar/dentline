@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EEF1F3;-webkit-font-smoothing:antialiased}
+a{color:#0E7C7B}a:hover{color:#0a5f5e}
+button{font-family:inherit}
+*:focus-visible{outline:2.5px solid #0E7C7B;outline-offset:2px;border-radius:4px}
+@keyframes dl-shimmer{0%{opacity:.45}50%{opacity:1}100%{opacity:.45}}
+@keyframes dl-up{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes dl-fade{from{opacity:0}to{opacity:1}}
+@keyframes dl-pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+@keyframes dl-pulse{0%{box-shadow:0 0 0 0 rgba(14,124,123,.42)}70%{box-shadow:0 0 0 7px rgba(14,124,123,0)}100%{box-shadow:0 0 0 0 rgba(14,124,123,0)}}
+button{transition:transform .16s cubic-bezier(.2,.7,.3,1),box-shadow .2s ease,background-color .16s ease,border-color .16s ease,color .16s ease}
+button:not(:disabled):active{transform:scale(.982)}
+input{transition:border-color .16s ease,box-shadow .16s ease}
+input:focus{box-shadow:0 0 0 3px rgba(14,124,123,.14)}
+[data-stagger]>*{animation:dl-up .36s cubic-bezier(.2,.7,.3,1) both}
+[data-stagger]>*:nth-child(2){animation-delay:.045s}
+[data-stagger]>*:nth-child(3){animation-delay:.09s}
+[data-stagger]>*:nth-child(4){animation-delay:.135s}
+[data-stagger]>*:nth-child(5){animation-delay:.18s}
+[data-stagger]>*:nth-child(6){animation-delay:.225s}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</helmet>
+<div style="min-height:100vh;font-family:Inter,system-ui,sans-serif;color:#1E2A32;display:flex;flex-direction:column;align-items:center;gap:18px;padding:28px 16px 56px;box-sizing:border-box">
+
+  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;max-width:520px">
+    <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#65757F;margin-right:4px">Demo states</span>
+    <sc-for list="{{ jumps }}" as="j" hint-placeholder-count="5">
+      <button onClick="{{ j.go }}" style="border:1px solid #D3DBE0;background:#FFF;color:#1E2A32;font-size:12px;font-weight:500;padding:6px 11px;border-radius:8px;cursor:pointer" style-hover="{background:'#D6F2F0',borderColor:'#0E7C7B'}">{{ j.label }}</button>
+    </sc-for>
+  </div>
+
+  <div style="width:390px;max-width:100%;background:#FAFBFC;border-radius:28px;box-shadow:0 24px 60px rgba(30,42,50,.16),0 2px 6px rgba(30,42,50,.06);overflow:hidden;position:relative;min-height:800px;display:flex;flex-direction:column">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 6px;font-size:11px;font-weight:600;color:#65757F">
+      <span>09:41</span><span style="letter-spacing:.14em">DENTLINE</span><span>􀛨 100%</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;padding:6px 18px 12px;min-height:44px">
+      <sc-if value="{{ canBack }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ back }}" aria-label="Go back" style="width:36px;height:36px;flex:none;border-radius:10px;border:1px solid #D3DBE0;background:#FFF;color:#1E2A32;font-size:16px;line-height:1;cursor:pointer;display:grid;place-items:center" style-hover="{background:'#D6F2F0'}">←</button>
+      </sc-if>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:600;letter-spacing:-.01em">{{ headerTitle }}</div>
+        <div style="font-size:12px;color:#65757F;margin-top:1px">{{ headerSub }}</div>
+      </div>
+      <sc-if value="{{ showSteps }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:5px;flex:none" role="progressbar" aria-label="Booking progress">
+          <sc-for list="{{ stepDots }}" as="d" hint-placeholder-count="3">
+            <span style="width:7px;height:7px;border-radius:50%;background:{{ d.color }}"></span>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="flex:1;padding:4px 18px 28px;overflow:hidden">
+
+      <sc-if value="{{ isTreatment }}" hint-placeholder-val="{{ true }}">
+        <div data-stagger="1" style="display:flex;flex-direction:column;gap:10px">
+          <p style="margin:2px 0 8px;font-size:13px;line-height:1.5;color:#4A5A64">Book in three steps. Choose what you need and we will show real openings from our practitioners' hours.</p>
+          <sc-for list="{{ treatments }}" as="t" hint-placeholder-count="5">
+            <button onClick="{{ t.pick }}" style="text-align:left;display:flex;align-items:center;gap:14px;width:100%;background:#FFF;border:1px solid #E3E9ED;border-radius:12px;padding:14px 15px;cursor:pointer;box-shadow:0 1px 2px rgba(30,42,50,.05)" style-hover="{borderColor:'#0E7C7B',boxShadow:'0 8px 20px rgba(14,124,123,.16)',transform:'translateY(-2px)'}">
+              <span style="width:40px;height:40px;flex:none;border-radius:12px;background:#D6F2F0;display:grid;place-items:center;font-size:13px;font-weight:700;color:#0E7C7B">{{ t.code }}</span>
+              <span style="flex:1;min-width:0">
+                <span style="display:block;font-size:14.5px;font-weight:600">{{ t.name }}</span>
+                <span style="display:block;font-size:12.5px;color:#65757F;margin-top:2px">{{ t.duration }} min</span>
+              </span>
+              <span style="font-size:14px;font-weight:600;color:#0E7C7B;flex:none">{{ t.price }} kr</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPractitioner }}" hint-placeholder-val="{{ true }}">
+        <div data-stagger="1" style="display:flex;flex-direction:column;gap:10px">
+          <button onClick="{{ pickAny }}" style="text-align:left;display:flex;align-items:center;gap:14px;background:#0E7C7B;border:1px solid #0E7C7B;border-radius:12px;padding:15px;cursor:pointer;color:#FFF" style-hover="{background:'#0a5f5e'}">
+            <span style="width:42px;height:42px;flex:none;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:17px">✦</span>
+            <span style="flex:1">
+              <span style="display:block;font-size:14.5px;font-weight:600">First available</span>
+              <span style="display:block;font-size:12.5px;opacity:.85;margin-top:2px">Earliest opening across the clinic</span>
+            </span>
+          </button>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#65757F;margin:8px 0 -2px">Or choose a practitioner</div>
+          <sc-for list="{{ practitioners }}" as="p" hint-placeholder-count="3">
+            <button onClick="{{ p.pick }}" style="text-align:left;display:flex;align-items:center;gap:14px;background:#FFF;border:1px solid #E3E9ED;border-radius:12px;padding:13px 15px;cursor:pointer;box-shadow:0 1px 2px rgba(30,42,50,.05)" style-hover="{borderColor:'#0E7C7B',boxShadow:'0 8px 20px rgba(14,124,123,.16)',transform:'translateY(-2px)'}">
+              <span style="width:44px;height:44px;flex:none;border-radius:50%;background:#D6F2F0;display:grid;place-items:center;font-size:14px;font-weight:700;color:#0E7C7B">{{ p.initials }}</span>
+              <span style="flex:1;min-width:0">
+                <span style="display:block;font-size:14.5px;font-weight:600">{{ p.name }}</span>
+                <span style="display:block;font-size:12.5px;color:#65757F;margin-top:2px">{{ p.title }} · {{ p.hoursLabel }}</span>
+              </span>
+              <span style="color:#65757F;flex:none">›</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isSlots }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px">
+            <sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+              <button onClick="{{ d.pick }}" disabled="{{ d.closed }}" style="flex:none;width:58px;padding:9px 0;border-radius:12px;border:1px solid {{ d.border }};background:{{ d.bg }};color:{{ d.fg }};cursor:{{ d.cursor }};display:flex;flex-direction:column;align-items:center;gap:3px">
+                <span style="font-size:11px;font-weight:500;opacity:.8">{{ d.dow }}</span>
+                <span style="font-size:16px;font-weight:600">{{ d.dom }}</span>
+                <span style="font-size:9.5px;font-weight:600;letter-spacing:.02em">{{ d.note }}</span>
+              </button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ loadingSlots }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="height:12px;width:96px;border-radius:6px;background:#E3E9ED;animation:dl-shimmer 1.3s infinite"></div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+                <sc-for list="{{ skeletons }}" as="s" hint-placeholder-count="9">
+                  <div style="height:42px;border-radius:12px;background:#E3E9ED;animation:dl-shimmer 1.3s infinite"></div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showSlots }}" hint-placeholder-val="{{ true }}">
+            <div style="animation:dl-fade .25s ease">
+              <sc-for list="{{ slotGroups }}" as="g" hint-placeholder-count="2">
+                <div style="margin-bottom:20px">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px">
+                    <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#65757F">{{ g.label }}</span>
+                    <span style="font-size:11.5px;color:#8A98A1">{{ g.count }} open</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+                    <sc-for list="{{ g.slots }}" as="s" hint-placeholder-count="6">
+                      <button onClick="{{ s.pick }}" style="padding:12px 0;border-radius:12px;border:1px solid #CFE7E6;background:#FFF;color:#0E7C7B;font-size:14px;font-weight:600;cursor:pointer" style-hover="{background:'#0E7C7B',color:'#FFF',borderColor:'#0E7C7B',transform:'translateY(-2px)',boxShadow:'0 6px 14px rgba(14,124,123,.22)'}">{{ s.time }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+              <p style="margin:0;font-size:11.5px;line-height:1.5;color:#8A98A1">Openings are calculated live from {{ pracLabel }}'s working hours minus booked appointments.</p>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showFullyBooked }}" hint-placeholder-val="{{ true }}">
+            <div style="animation:dl-fade .25s ease;text-align:center;padding:26px 14px 10px;background:#FFF;border:1px solid #E3E9ED;border-radius:12px">
+              <div style="width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:#D6F2F0;display:grid;place-items:center">
+                <span style="width:26px;height:26px;border-radius:8px 8px 13px 13px;background:#0E7C7B;display:block"></span>
+              </div>
+              <div style="font-size:15.5px;font-weight:600">This day is fully booked</div>
+              <p style="margin:7px 0 18px;font-size:13px;line-height:1.5;color:#4A5A64">Nothing left on {{ selectedDayLong }} for {{ pracLabel }}. Join the waitlist and we will offer you the first cancellation that fits.</p>
+              <button onClick="{{ toWaitlist }}" style="width:100%;padding:14px;border:none;border-radius:12px;background:#0E7C7B;color:#FFF;font-size:14.5px;font-weight:600;cursor:pointer" style-hover="{background:'#0a5f5e'}">Join waitlist</button>
+              <button onClick="{{ nextOpenDay }}" style="width:100%;margin-top:9px;padding:13px;border:1px solid #D3DBE0;border-radius:12px;background:#FFF;color:#1E2A32;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="{background:'#F2F6F8'}">See next open day</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isDetails }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="background:#FFF;border:1px solid #E3E9ED;border-radius:12px;padding:16px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#65757F;margin-bottom:12px">Your appointment</div>
+            <sc-for list="{{ summaryRows }}" as="r" hint-placeholder-count="4">
+              <div style="display:flex;justify-content:space-between;gap:14px;padding:7px 0;font-size:13.5px">
+                <span style="color:#65757F">{{ r.k }}</span>
+                <span style="font-weight:600;text-align:right">{{ r.v }}</span>
+              </div>
+            </sc-for>
+            <div style="border-top:1px solid #E3E9ED;margin-top:10px;padding-top:11px;display:flex;justify-content:space-between;font-size:14.5px;font-weight:700">
+              <span>Total</span><span style="color:#0E7C7B">{{ totalPrice }} kr</span>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:11px">
+            <sc-for list="{{ fields }}" as="f" hint-placeholder-count="3">
+              <label style="display:block">
+                <span style="display:block;font-size:12.5px;font-weight:600;margin-bottom:5px">{{ f.label }}</span>
+                <input type="{{ f.type }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" inputMode="{{ f.mode }}" aria-invalid="{{ f.invalid }}" style="width:100%;box-sizing:border-box;padding:13px 14px;border-radius:12px;border:1px solid {{ f.border }};background:#FFF;font-size:14.5px;color:#1E2A32;font-family:inherit"/>
+                <sc-if value="{{ f.error }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:block;font-size:11.5px;color:#B3261E;margin-top:5px;font-weight:500">{{ f.error }}</span>
+                </sc-if>
+              </label>
+            </sc-for>
+          </div>
+
+          <button onClick="{{ confirmBooking }}" style="width:100%;padding:15px;border:none;border-radius:12px;background:#0E7C7B;color:#FFF;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(14,124,123,.22)" style-hover="{background:'#0a5f5e'}">Confirm booking</button>
+          <p style="margin:0;font-size:11.5px;line-height:1.5;color:#8A98A1;text-align:center">Free cancellation up to 24 hours before. Your slot is held while you fill this in.</p>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isDone }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:dl-up .3s ease;text-align:center;padding-top:18px">
+          <div style="width:76px;height:76px;margin:0 auto 18px;border-radius:50%;background:#D6F2F0;display:grid;place-items:center;font-size:30px;color:#0E7C7B;animation:dl-pop .5s cubic-bezier(.2,.8,.3,1) .06s both">✓</div>
+          <div style="font-size:20px;font-weight:700;letter-spacing:-.02em">You are booked in</div>
+          <p style="margin:8px 0 20px;font-size:13.5px;line-height:1.55;color:#4A5A64">See you soon, {{ firstName }}. A confirmation is on its way to {{ email }}.</p>
+          <div style="background:#FFF;border:1px solid #E3E9ED;border-radius:12px;padding:16px;text-align:left">
+            <sc-for list="{{ summaryRows }}" as="r" hint-placeholder-count="4">
+              <div style="display:flex;justify-content:space-between;gap:14px;padding:7px 0;font-size:13.5px">
+                <span style="color:#65757F">{{ r.k }}</span>
+                <span style="font-weight:600;text-align:right">{{ r.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <button onClick="{{ addCalendar }}" style="width:100%;margin-top:14px;padding:14px;border:1px solid #0E7C7B;border-radius:12px;background:#FFF;color:#0E7C7B;font-size:14px;font-weight:600;cursor:pointer" style-hover="{background:'#D6F2F0'}">Add to calendar</button>
+          <button onClick="{{ toAppointment }}" style="width:100%;margin-top:9px;padding:14px;border:1px solid #D3DBE0;border-radius:12px;background:#FFF;color:#1E2A32;font-size:14px;font-weight:600;cursor:pointer" style-hover="{background:'#F2F6F8'}">View my appointment</button>
+          <div style="display:flex;gap:9px;align-items:flex-start;margin-top:18px;padding:13px 14px;background:#D6F2F0;border-radius:12px;text-align:left">
+            <span style="font-size:14px;line-height:1.3">🔔</span>
+            <span style="font-size:12.5px;line-height:1.5;color:#12545A">You'll receive a reminder the day before.</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isWaitlist }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <p style="margin:0;font-size:13px;line-height:1.5;color:#4A5A64">Tell us when you can come in. The moment a matching appointment frees up, we hold it for you and send an offer.</p>
+          <div style="background:#FFF;border:1px solid #E3E9ED;border-radius:12px;padding:16px">
+            <div style="font-size:12.5px;font-weight:600;margin-bottom:10px">Preferred time windows</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <sc-for list="{{ windows }}" as="w" hint-placeholder-count="5">
+                <button onClick="{{ w.toggle }}" aria-pressed="{{ w.on }}" style="padding:9px 13px;border-radius:999px;border:1px solid {{ w.border }};background:{{ w.bg }};color:{{ w.fg }};font-size:12.5px;font-weight:600;cursor:pointer">{{ w.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#FFF;border:1px solid #E3E9ED;border-radius:12px;padding:16px">
+            <div style="display:flex;justify-content:space-between;gap:14px;font-size:13.5px;padding:3px 0">
+              <span style="color:#65757F">Treatment</span><span style="font-weight:600">{{ treatmentName }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:14px;font-size:13.5px;padding:6px 0 0">
+              <span style="color:#65757F">Practitioner</span><span style="font-weight:600">{{ pracLabel }}</span>
+            </div>
+          </div>
+          <button onClick="{{ joinWaitlist }}" disabled="{{ noWindows }}" style="width:100%;padding:15px;border:none;border-radius:12px;background:{{ joinBg }};color:#FFF;font-size:15px;font-weight:600;cursor:{{ joinCursor }}">Join waitlist</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isQueued }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:dl-up .3s ease">
+          <div style="background:#FFF;border:1px solid #E3E9ED;border-radius:12px;padding:22px 18px;text-align:center">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#65757F">Your place in the queue</div>
+            <div style="font-size:48px;font-weight:700;color:#0E7C7B;letter-spacing:-.03em;line-height:1.1;margin:6px 0 2px">{{ queuePos }}</div>
+            <div style="font-size:13px;color:#4A5A64">of {{ queueTotal }} waiting for {{ treatmentName }}</div>
+            <div style="height:1px;background:#E3E9ED;margin:17px 0"></div>
+            <div style="font-size:12.5px;line-height:1.5;color:#4A5A64;text-align:left">Windows: <strong style="font-weight:600">{{ windowSummary }}</strong><br/>Typical wait at position {{ queuePos }} is 4–6 days.</div>
+          </div>
+          <p style="margin:16px 2px 0;font-size:12.5px;line-height:1.55;color:#8A98A1">We will text and email you when a slot is offered. Offers are held for {{ holdMinutes }} minutes before passing to the next person.</p>
+          <button onClick="{{ leaveWaitlist }}" style="width:100%;margin-top:16px;padding:13px;border:1px solid #D3DBE0;border-radius:12px;background:#FFF;color:#1E2A32;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="{background:'#F2F6F8'}">Leave waitlist</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isAppointment }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#FFF;border:1px solid #E3E9ED;border-radius:12px;padding:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px">
+              <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#65757F">Appointment {{ apptRef }}</span>
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:{{ badgeBg }};color:{{ badgeFg }};font-size:11.5px;font-weight:600;border:1px solid {{ badgeBorder }}">
+                <span style="width:6px;height:6px;border-radius:50%;background:{{ badgeFg }}"></span>{{ badgeLabel }}
+              </span>
+            </div>
+            <div style="font-size:19px;font-weight:700;letter-spacing:-.02em">{{ apptWhen }}</div>
+            <div style="font-size:13.5px;color:#4A5A64;margin-top:4px">{{ treatmentName }} · {{ apptDuration }} min · {{ pracLabel }}</div>
+            <div style="height:1px;background:#E3E9ED;margin:16px 0"></div>
+            <div style="display:flex;gap:12px;align-items:center">
+              <span style="width:42px;height:42px;flex:none;border-radius:50%;background:#D6F2F0;display:grid;place-items:center;font-size:13px;font-weight:700;color:#0E7C7B">{{ pracInitials }}</span>
+              <span style="font-size:12.5px;line-height:1.5;color:#4A5A64">Dentline Majorstuen<br/>Kirkeveien 64B, 0364 Oslo</span>
+            </div>
+          </div>
+          <sc-if value="{{ apptActive }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <button onClick="{{ reschedule }}" style="width:100%;padding:14px;border:1px solid #0E7C7B;border-radius:12px;background:#FFF;color:#0E7C7B;font-size:14px;font-weight:600;cursor:pointer" style-hover="{background:'#D6F2F0'}">Reschedule</button>
+              <button onClick="{{ askCancel }}" style="width:100%;padding:14px;border:1px solid #E7CFCD;border-radius:12px;background:#FFF;color:#B3261E;font-size:14px;font-weight:600;cursor:pointer" style-hover="{background:'#FDF3F2'}">Cancel appointment</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ apptCancelled }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#F2F6F8;border:1px solid #E3E9ED;border-radius:12px;padding:15px;font-size:12.5px;line-height:1.55;color:#4A5A64">This appointment is cancelled and the slot has been released to the waitlist. You can book a new time whenever suits you.
+              <button onClick="{{ restart }}" style="width:100%;margin-top:12px;padding:13px;border:none;border-radius:12px;background:#0E7C7B;color:#FFF;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="{background:'#0a5f5e'}">Book a new appointment</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ offerOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;background:rgba(30,42,50,.42);display:flex;align-items:flex-end;padding:16px;animation:dl-fade .2s ease" role="dialog" aria-modal="true" aria-label="Slot offer">
+        <div style="width:100%;background:#FFF;border-radius:18px;padding:20px;animation:dl-up .28s ease;box-shadow:0 -8px 30px rgba(30,42,50,.2)">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#0E7C7B;animation:dl-pulse 1.8s ease-out infinite"></span>
+            <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#0E7C7B">A slot just opened</span>
+          </div>
+          <div style="font-size:18px;font-weight:700;letter-spacing:-.02em">{{ offerWhen }}</div>
+          <div style="font-size:13px;color:#4A5A64;margin-top:4px">{{ treatmentName }} with {{ offerPrac }}</div>
+          <div style="display:flex;align-items:center;gap:12px;margin:16px 0;padding:13px 14px;background:#D6F2F0;border-radius:12px">
+            <span style="font-size:22px;font-weight:700;color:#0E7C7B;font-variant-numeric:tabular-nums;letter-spacing:-.02em">{{ offerClock }}</span>
+            <span style="font-size:12px;line-height:1.45;color:#12545A">This slot is held for you for {{ holdMinutes }} minutes.</span>
+          </div>
+          <div style="height:4px;border-radius:999px;background:#E3E9ED;overflow:hidden;margin-bottom:16px">
+            <div style="height:100%;width:{{ offerPct }}%;background:#0E7C7B;border-radius:999px;transition:width 1s linear"></div>
+          </div>
+          <div style="display:flex;gap:9px">
+            <button onClick="{{ declineOffer }}" style="flex:1;padding:14px;border:1px solid #D3DBE0;border-radius:12px;background:#FFF;color:#1E2A32;font-size:14px;font-weight:600;cursor:pointer" style-hover="{background:'#F2F6F8'}">Decline</button>
+            <button onClick="{{ acceptOffer }}" style="flex:1.4;padding:14px;border:none;border-radius:12px;background:#0E7C7B;color:#FFF;font-size:14px;font-weight:600;cursor:pointer" style-hover="{background:'#0a5f5e'}">Accept slot</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ cancelOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;background:rgba(30,42,50,.42);display:grid;place-items:center;padding:22px;animation:dl-fade .2s ease" role="dialog" aria-modal="true" aria-label="Confirm cancellation">
+        <div style="background:#FFF;border-radius:16px;padding:20px;animation:dl-up .24s ease">
+          <div style="font-size:16.5px;font-weight:700;letter-spacing:-.01em">Cancel this appointment?</div>
+          <p style="margin:9px 0 18px;font-size:13px;line-height:1.55;color:#4A5A64">Your {{ apptWhen }} slot will be released to the waitlist right away, and may be taken within minutes. This cannot be undone.</p>
+          <div style="display:flex;gap:9px">
+            <button onClick="{{ closeCancel }}" style="flex:1;padding:13px;border:1px solid #D3DBE0;border-radius:12px;background:#FFF;color:#1E2A32;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="{background:'#F2F6F8'}">Keep it</button>
+            <button onClick="{{ doCancel }}" style="flex:1;padding:13px;border:none;border-radius:12px;background:#B3261E;color:#FFF;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="{background:'#8f1e18'}">Yes, cancel</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:16px;right:16px;bottom:18px;background:#1E2A32;color:#FFF;padding:13px 15px;border-radius:12px;font-size:13px;font-weight:500;display:flex;gap:10px;align-items:center;animation:dl-up .25s ease;box-shadow:0 10px 26px rgba(30,42,50,.28)" role="status">
+        <span style="color:#8FE3DF">✓</span>{{ toast }}
+      </div>
+    </sc-if>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:430,&quot;height&quot;:900},&quot;slotStep&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:15,&quot;tsType&quot;:&quot;number&quot;,&quot;options&quot;:[15,30],&quot;unit&quot;:&quot;min&quot;,&quot;section&quot;:&quot;Availability&quot;},&quot;offerHoldMinutes&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:15,&quot;min&quot;:5,&quot;max&quot;:30,&quot;step&quot;:5,&quot;tsType&quot;:&quot;number&quot;,&quot;unit&quot;:&quot;min&quot;,&quot;section&quot;:&quot;Availability&quot;}}">
+const TREATMENTS = [
+  { id: 'checkup', code: 'CU', name: 'Check-up', duration: 30, price: '890' },
+  { id: 'clean', code: 'CL', name: 'Cleaning', duration: 45, price: '1 190' },
+  { id: 'fill', code: 'FI', name: 'Filling', duration: 60, price: '1 750' },
+  { id: 'root', code: 'RC', name: 'Root canal', duration: 90, price: '4 500' },
+  { id: 'white', code: 'WH', name: 'Whitening', duration: 60, price: '3 200' }
+];
+const W_FULL = [{ start: '08:00', end: '11:30' }, { start: '12:15', end: '15:30' }];
+const W_LATE = [{ start: '10:00', end: '13:00' }, { start: '13:45', end: '18:00' }];
+const PRACS = [
+  { id: 'nordvik', name: 'Dr. Astrid Nordvik', initials: 'AN', title: 'Dentist', hoursLabel: '08:00–15:30', hours: { 1: W_FULL, 2: W_FULL, 3: W_FULL, 4: W_FULL, 5: W_FULL } },
+  { id: 'saether', name: 'Dr. Henrik Sæther', initials: 'HS', title: 'Dentist', hoursLabel: '10:00–18:00', hours: { 1: W_LATE, 2: W_LATE, 3: W_LATE, 4: W_LATE } },
+  { id: 'lund', name: 'Mari Lund', initials: 'ML', title: 'Hygienist', hoursLabel: '08:00–15:30', hours: { 1: W_FULL, 2: W_FULL, 4: W_FULL, 5: W_FULL } }
+];
+// Booked appointments by practitioner and day offset from today.
+const BOOKED = {
+  nordvik: { 0: [['08:00', '09:00'], ['09:15', '10:15'], ['12:15', '13:45'], ['14:00', '15:30']], 1: [['08:30', '09:00'], ['10:00', '11:30'], ['13:00', '14:00']], 3: [['08:00', '08:30'], ['12:15', '13:15']], 6: [['09:00', '10:30']] },
+  saether: { 0: [['10:00', '11:00'], ['11:15', '12:45'], ['15:00', '16:30']], 1: [['10:00', '13:00'], ['13:45', '15:15']], 3: [['16:00', '18:00']], 6: [['10:00', '11:30'], ['14:00', '15:00']] },
+  lund: { 0: [['08:00', '08:45'], ['09:00', '11:30'], ['12:15', '13:00']], 1: [['08:00', '09:30']], 3: [['08:00', '11:30'], ['12:15', '14:00']], 6: [] }
+};
+const FULL_DAY = 2; // Thursday is fully booked clinic-wide
+const WINDOWS = [
+  { id: 'wm', label: 'Weekday mornings' },
+  { id: 'wa', label: 'Weekday afternoons' },
+  { id: 'late', label: 'After 16:00' },
+  { id: 'asap', label: 'Anything this week' },
+  { id: 'fri', label: 'Fridays only' }
+];
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const toMin = t => (+t.slice(0, 2)) * 60 + (+t.slice(3));
+const fromMin = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+
+class Component extends DCLogic {
+  state = {
+    screen: 'treatment', treatment: null, prac: null, dayOffset: 0, slot: null,
+    loading: false, name: '', phone: '', email: '', errors: {},
+    windows: ['wm'], joined: false, offerOpen: false, offerLeft: 0,
+    cancelOpen: false, status: 'confirmed', toast: '', history: []
+  };
+
+  componentDidMount() { this.today = new Date(2026, 8, 8); }
+  componentWillUnmount() { clearInterval(this.tick); clearTimeout(this.toastT); clearTimeout(this.loadT); clearTimeout(this.offerT); }
+
+  say(msg) { clearTimeout(this.toastT); this.setState({ toast: msg }); this.toastT = setTimeout(() => this.setState({ toast: '' }), 2800); }
+
+  go(screen, extra) { this.setState(s => ({ screen, history: [...s.history, s.screen], ...(extra || {}) })); }
+  goBack = () => this.setState(s => ({ screen: s.history[s.history.length - 1] || 'treatment', history: s.history.slice(0, -1) }));
+
+  dateFor(off) { const d = new Date(this.today || new Date(2026, 8, 8)); d.setDate(d.getDate() + off); return d; }
+
+  slotsFor(pracId, off, duration) {
+    if (off === FULL_DAY) return [];
+    const p = PRACS.find(x => x.id === pracId);
+    const wd = this.dateFor(off).getDay();
+    const windows = (p.hours || {})[wd];
+    if (!windows) return [];
+    const booked = ((BOOKED[pracId] || {})[off] || []).map(b => [toMin(b[0]), toMin(b[1])]);
+    const step = this.props.slotStep ?? 15;
+    const out = [];
+    for (const w of windows) {
+      const s = toMin(w.start), e = toMin(w.end);
+      for (let t = s; t + duration <= e; t += step) {
+        if (!booked.some(b => t < b[1] && t + duration > b[0])) out.push(t);
+      }
+    }
+    return out;
+  }
+
+  allSlots(off) {
+    const dur = (this.state.treatment || TREATMENTS[0]).duration;
+    if (this.state.prac) return this.slotsFor(this.state.prac.id, off, dur).map(m => ({ m, p: this.state.prac }));
+    const merged = [];
+    PRACS.forEach(p => this.slotsFor(p.id, off, dur).forEach(m => { if (!merged.some(x => x.m === m)) merged.push({ m, p }); }));
+    return merged.sort((a, b) => a.m - b.m);
+  }
+
+  loadSlots(off) {
+    clearTimeout(this.loadT);
+    this.setState({ dayOffset: off, loading: true });
+    this.loadT = setTimeout(() => this.setState({ loading: false }), 620);
+  }
+
+  startOffer() {
+    clearInterval(this.tick);
+    const total = (this.props.offerHoldMinutes ?? 15) * 60;
+    this.setState({ offerOpen: true, offerLeft: total - 23, offerTotal: total });
+    this.tick = setInterval(() => this.setState(s => {
+      if (s.offerLeft <= 1) { clearInterval(this.tick); return { offerLeft: 0, offerOpen: false }; }
+      return { offerLeft: s.offerLeft - 1 };
+    }), 1000);
+  }
+
+  jumpQueued = () => {
+    clearTimeout(this.offerT);
+    this.setState({ screen: 'waitlist', treatment: TREATMENTS[1], prac: null, joined: true, history: ['treatment'] });
+    setTimeout(() => this.setState({ screen: 'queued' }), 0);
+    this.offerT = setTimeout(() => this.startOffer(), 2600);
+  };
+
+  renderVals() {
+    const s = this.state;
+    const t = s.treatment || TREATMENTS[0];
+    const hold = this.props.offerHoldMinutes ?? 15;
+    const pracLabel = s.prac ? s.prac.name : 'first available';
+    const dayD = this.dateFor(s.dayOffset);
+    const slots = s.screen === 'slots' ? this.allSlots(s.dayOffset) : [];
+    const mk = o => ({ time: fromMin(o.m), pick: () => this.go('details', { slot: o }) });
+    const groups = [
+      { label: 'Morning', slots: slots.filter(o => o.m < 720).map(mk) },
+      { label: 'Afternoon', slots: slots.filter(o => o.m >= 720).map(mk) }
+    ].filter(g => g.slots.length).map(g => ({ ...g, count: g.slots.length }));
+
+    const badge = {
+      confirmed: ['#D6F2F0', '#0E7C7B', '#B6E4E1', 'Confirmed'],
+      cancelled: ['#F2F6F8', '#65757F', '#E3E9ED', 'Cancelled']
+    }[s.status];
+
+    const whenLabel = (off, m) => DOW[this.dateFor(off).getDay()] + ' ' + this.dateFor(off).getDate() + ' ' + MON[this.dateFor(off).getMonth()] + ' · ' + fromMin(m);
+    const apptWhen = s.slot ? whenLabel(s.dayOffset, s.slot.m) : 'Wed 16 Sep · 09:15';
+    const apptPrac = s.slot ? s.slot.p : PRACS[0];
+
+    const headers = {
+      treatment: ['What do you need?', 'Dentline Majorstuen · Oslo'],
+      practitioner: [t.name, t.duration + ' min · ' + t.price + ' kr'],
+      slots: ['Pick a time', t.name + ' with ' + pracLabel],
+      details: ['Your details', 'Step 3 of 3'],
+      done: ['Confirmed', 'Booking ' + (s.apptRef || 'DL-4821')],
+      waitlist: ['Join the waitlist', t.name],
+      queued: ['You are on the waitlist', t.name],
+      appointment: ['My appointment', 'Shared via your reminder link']
+    }[s.screen] || ['Dentline', ''];
+
+    const stepIdx = { treatment: 0, practitioner: 1, slots: 1, details: 2 }[s.screen];
+    const errs = s.errors;
+    const field = (key, label, type, placeholder, mode) => ({
+      label, type, placeholder, mode: mode || 'text', value: s[key],
+      error: errs[key] || '', invalid: !!errs[key], border: errs[key] ? '#B3261E' : '#D3DBE0',
+      set: e => this.setState({ [key]: e.target.value, errors: { ...this.state.errors, [key]: '' } })
+    });
+
+    return {
+      jumps: [
+        { label: 'Start booking', go: () => this.setState({ screen: 'treatment', treatment: null, prac: null, slot: null, history: [], status: 'confirmed', offerOpen: false, cancelOpen: false, joined: false }) },
+        { label: 'Fully booked', go: () => this.setState({ screen: 'slots', treatment: TREATMENTS[0], prac: PRACS[0], dayOffset: FULL_DAY, loading: false, history: ['treatment', 'practitioner'] }) },
+        { label: 'Waitlist offer', go: this.jumpQueued },
+        { label: 'My appointment', go: () => this.setState({ screen: 'appointment', status: 'confirmed', treatment: TREATMENTS[0], prac: PRACS[0], slot: null, history: [] }) },
+        { label: 'Confirmation', go: () => this.setState({ screen: 'done', treatment: TREATMENTS[1], prac: PRACS[2], dayOffset: 1, slot: { m: 600, p: PRACS[2] }, name: 'Ingrid Bakken', email: 'ingrid.bakken@gmail.com', phone: '+47 913 44 208', history: [] }) }
+      ],
+      canBack: !!s.history.length,
+      back: this.goBack,
+      headerTitle: headers[0], headerSub: headers[1],
+      showSteps: stepIdx !== undefined,
+      stepDots: [0, 1, 2].map(i => ({ color: i <= (stepIdx || 0) ? '#0E7C7B' : '#D3DBE0' })),
+
+      isTreatment: s.screen === 'treatment',
+      treatments: TREATMENTS.map(x => ({ ...x, pick: () => this.go('practitioner', { treatment: x }) })),
+
+      isPractitioner: s.screen === 'practitioner',
+      practitioners: PRACS.map(p => ({ ...p, pick: () => { this.go('slots', { prac: p }); this.loadSlots(0); } })),
+      pickAny: () => { this.go('slots', { prac: null }); this.loadSlots(0); },
+
+      isSlots: s.screen === 'slots',
+      loadingSlots: s.loading,
+      skeletons: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      showSlots: !s.loading && groups.length > 0,
+      showFullyBooked: !s.loading && groups.length === 0,
+      slotGroups: groups,
+      days: [0, 1, 2, 3, 4, 5, 6].map(off => {
+        const d = this.dateFor(off);
+        const closed = this.allSlots(off).length === 0 && off !== FULL_DAY;
+        const sel = off === s.dayOffset;
+        const note = off === FULL_DAY ? 'Full' : closed ? 'Closed' : this.allSlots(off).length + ' free';
+        return {
+          dow: DOW[d.getDay()], dom: d.getDate(), note, closed,
+          bg: sel ? '#0E7C7B' : closed ? '#F2F6F8' : '#FFF',
+          fg: sel ? '#FFF' : closed ? '#8A98A1' : '#1E2A32',
+          border: sel ? '#0E7C7B' : '#E3E9ED',
+          cursor: closed ? 'not-allowed' : 'pointer',
+          pick: () => { if (!closed) this.loadSlots(off); }
+        };
+      }),
+      pracLabel,
+      selectedDayLong: DOW[dayD.getDay()] + ' ' + dayD.getDate() + ' ' + MON[dayD.getMonth()],
+      toWaitlist: () => this.go('waitlist'),
+      nextOpenDay: () => { const nxt = [0, 1, 3, 6].find(o => o !== s.dayOffset && this.allSlots(o).length); this.loadSlots(nxt ?? 0); },
+
+      isDetails: s.screen === 'details',
+      summaryRows: [
+        { k: 'Treatment', v: t.name },
+        { k: 'Practitioner', v: apptPrac.name },
+        { k: 'When', v: apptWhen },
+        { k: 'Duration', v: t.duration + ' min' }
+      ],
+      totalPrice: t.price,
+      fields: [
+        field('name', 'Full name', 'text', 'Ingrid Bakken'),
+        field('phone', 'Phone', 'tel', '+47 913 44 208', 'tel'),
+        field('email', 'Email', 'email', 'ingrid.bakken@gmail.com', 'email')
+      ],
+      confirmBooking: () => {
+        const e = {};
+        if (s.name.trim().length < 2) e.name = 'Please enter your full name';
+        if (s.phone.replace(/\D/g, '').length < 8) e.phone = 'Enter a phone number we can text';
+        if (!/^\S+@\S+\.\S+$/.test(s.email)) e.email = 'Enter a valid email address';
+        if (Object.keys(e).length) { this.setState({ errors: e }); this.say('Check the highlighted fields'); return; }
+        this.setState({ screen: 'done', status: 'confirmed', apptRef: 'DL-4821', history: [] });
+        this.say('Appointment requested — confirmed');
+      },
+
+      isDone: s.screen === 'done',
+      firstName: (s.name || 'Ingrid').split(' ')[0],
+      email: s.email || 'ingrid.bakken@gmail.com',
+      addCalendar: () => this.say('Added to your calendar'),
+      toAppointment: () => this.setState({ screen: 'appointment', status: 'confirmed', history: ['done'] }),
+
+      isWaitlist: s.screen === 'waitlist',
+      treatmentName: t.name,
+      windows: WINDOWS.map(w => {
+        const on = s.windows.includes(w.id);
+        return {
+          label: w.label, on,
+          bg: on ? '#0E7C7B' : '#FFF', fg: on ? '#FFF' : '#1E2A32', border: on ? '#0E7C7B' : '#D3DBE0',
+          toggle: () => this.setState(st => ({ windows: on ? st.windows.filter(x => x !== w.id) : [...st.windows, w.id] }))
+        };
+      }),
+      noWindows: s.windows.length === 0,
+      joinBg: s.windows.length ? '#0E7C7B' : '#B7C3CA',
+      joinCursor: s.windows.length ? 'pointer' : 'not-allowed',
+      joinWaitlist: () => { this.go('queued', { joined: true }); this.say('You are number 3 in the queue'); clearTimeout(this.offerT); this.offerT = setTimeout(() => this.startOffer(), 4000); },
+
+      isQueued: s.screen === 'queued',
+      queuePos: 3, queueTotal: 7, holdMinutes: hold,
+      windowSummary: s.windows.map(id => WINDOWS.find(w => w.id === id).label).join(', ') || 'none yet',
+      leaveWaitlist: () => { clearTimeout(this.offerT); clearInterval(this.tick); this.setState({ screen: 'treatment', joined: false, offerOpen: false, history: [] }); this.say('Removed from the waitlist'); },
+
+      offerOpen: s.offerOpen,
+      offerWhen: 'Fri 11 Sep · 13:45',
+      offerPrac: 'Mari Lund',
+      offerClock: Math.floor(s.offerLeft / 60) + ':' + String(s.offerLeft % 60).padStart(2, '0'),
+      offerPct: Math.round((s.offerLeft / ((this.state.offerTotal || hold * 60))) * 100),
+      acceptOffer: () => { clearInterval(this.tick); this.setState({ offerOpen: false, screen: 'appointment', status: 'confirmed', slot: { m: 825, p: PRACS[2] }, dayOffset: 3, prac: PRACS[2], history: [] }); this.say('Slot accepted — you are booked in'); },
+      declineOffer: () => { clearInterval(this.tick); this.setState({ offerOpen: false }); this.say('Offer declined — you keep your place'); },
+
+      isAppointment: s.screen === 'appointment',
+      apptRef: s.apptRef || 'DL-4821',
+      apptWhen, apptDuration: t.duration,
+      pracInitials: apptPrac.initials,
+      badgeBg: badge[0], badgeFg: badge[1], badgeBorder: badge[2], badgeLabel: badge[3],
+      apptActive: s.status === 'confirmed',
+      apptCancelled: s.status === 'cancelled',
+      reschedule: () => { this.go('slots', { prac: apptPrac }); this.loadSlots(0); this.say('Pick a new time — old slot stays held'); },
+      askCancel: () => this.setState({ cancelOpen: true }),
+      cancelOpen: s.cancelOpen,
+      closeCancel: () => this.setState({ cancelOpen: false }),
+      doCancel: () => { this.setState({ cancelOpen: false, status: 'cancelled' }); this.say('Cancelled — slot released to waitlist'); },
+      restart: () => this.setState({ screen: 'treatment', treatment: null, prac: null, slot: null, status: 'confirmed', history: [] }),
+
+      toast: s.toast
+    };
+  }
+}
+
+</script>
+</body>
+</html>
