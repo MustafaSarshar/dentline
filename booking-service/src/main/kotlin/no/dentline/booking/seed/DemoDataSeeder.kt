@@ -282,23 +282,26 @@ class DemoDataSeeder(
             events.publishEvent(queue.event(WaitlistEventType.OFFER_SENT, queue.view(vilde), offer.createdAt))
         }
 
+        // "This morning" for the answered offers below; before 11:10 the clock has not got there yet, so use yesterday.
+        val morning = if (clinicTime.nowLocal().toLocalTime().isBefore(LocalTime.of(11, 10))) anchor.minusDays(1) else anchor
+
         // Anders: declined an offer this morning at 11:04 and keeps his place.
         firstFreeSlot(anders, from = anchor.plusDays(1))?.let { (practitioner, start) ->
-            val sent = clinicTime.toInstant(anchor.atTime(10, 51)) // expires 11:06, declined 11:04
+            val sent = clinicTime.toInstant(morning.atTime(10, 51)) // expires 11:06, declined 11:04
             val offer = offers.save(SlotOffer(
                 waitlistEntry = anders, practitioner = practitioner,
                 startTime = start, endTime = start + anders.treatmentType.duration,
                 expiresAt = sent + Duration.ofMinutes(15), createdAt = sent,
             ))
             anders.markOffered(sent)
-            offer.decline(clinicTime.toInstant(anchor.atTime(11, 4)))
-            anders.decline(clinicTime.toInstant(anchor.atTime(11, 4)))
+            offer.decline(clinicTime.toInstant(morning.atTime(11, 4)))
+            anders.decline(clinicTime.toInstant(morning.atTime(11, 4)))
         }
 
         // Omar: accepted an offer at 09:52 today and has a confirmed appointment ("Open booking").
         firstFreeSlot(omar, from = anchor.plusDays(1))?.let { (practitioner, start) ->
-            val sent = clinicTime.toInstant(anchor.atTime(9, 40))
-            val accepted = clinicTime.toInstant(anchor.atTime(9, 52))
+            val sent = clinicTime.toInstant(morning.atTime(9, 40))
+            val accepted = clinicTime.toInstant(morning.atTime(9, 52))
             val offer = offers.save(SlotOffer(
                 waitlistEntry = omar, practitioner = practitioner,
                 startTime = start, endTime = start + omar.treatmentType.duration,
