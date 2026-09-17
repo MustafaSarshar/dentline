@@ -5,6 +5,7 @@ dependencies {
     implementation(libs.bundles.persistence)
     implementation(libs.bundles.observability)
     implementation(libs.spring.kafka)
+    implementation(libs.springdoc.openapi)
 
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.kafka.test)

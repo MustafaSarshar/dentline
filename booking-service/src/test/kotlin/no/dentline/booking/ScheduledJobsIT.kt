@@ -51,6 +51,19 @@ class ScheduledJobsIT : IntegrationTest() {
     }
 
     @Test
+    fun `moving an appointment after its reminder went out earns it a new reminder`() {
+        val monday = nextMonday()
+        val tuesday = monday.plusDays(1)
+        val id = book(monday.at("08:00"))["id"].asText().also { post("/api/appointments/$it/confirm") }
+        assertThat(reminders.sendRemindersFor(monday)).isEqualTo(1)
+
+        post("/api/appointments/$id/reschedule", mapOf("startTime" to tuesday.at("09:00").toString()))
+
+        assertThat(reminders.sendRemindersFor(monday)).describedAs("nothing left on the old day").isZero()
+        assertThat(reminders.sendRemindersFor(tuesday)).describedAs("the new day gets one").isEqualTo(1)
+    }
+
+    @Test
     fun `recalls list patients whose last check-up is nearly six months old, until they book again`() {
         val overdue = completedCheckUp("Hedda Moen", "hedda.moen@example.com", monthsAgo = 7)
         val dueSoon = completedCheckUp("Vetle Aas", "vetle.aas@example.com", monthsAgo = 5)

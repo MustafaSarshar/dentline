@@ -147,6 +147,9 @@ class Appointment(
         practitioner = newPractitioner
         startTime = newStart
         endTime = newStart + treatmentType.duration
+        // Any reminder already sent describes the old time, so the appointment becomes due for a
+        // new one. Worst case the patient gets a second reminder; the alternative is none at all.
+        reminderSentAt = null
         touch(now)
         record(now, HistoryType.RESCHEDULED, "Rescheduled by $actor")
     }

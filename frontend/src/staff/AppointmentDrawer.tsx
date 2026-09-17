@@ -4,6 +4,7 @@ import { ApiError, api } from '../api/client';
 import { useAppointment, useNotifications } from '../api/hooks';
 import type { Appointment, AppointmentAction, AppointmentStatus, Notification } from '../api/types';
 import { useToast } from '../components/Toast';
+import { useDialog } from '../components/useDialog';
 import { historyStamp, price, timeOf } from '../lib/format';
 import { styleOf } from '../lib/status';
 import type { StatusOverrides } from './StaffApp';
@@ -52,6 +53,7 @@ export function AppointmentDrawer({ appointmentId, overrides, setOverrides, onCl
   const query = useAppointment(appointmentId);
   const notifications = useNotifications(appointmentId);
   const [confirm, setConfirm] = useState<{ title: string; body: string; cta: string; run: () => void } | null>(null);
+  const drawerRef = useDialog<HTMLDivElement>(onClose);
 
   const transition = useMutation({
     mutationFn: ({ a, spec }: { a: Appointment; spec: ActionSpec }) => {
@@ -97,7 +99,7 @@ export function AppointmentDrawer({ appointmentId, overrides, setOverrides, onCl
     <>
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(30,42,50,.32)', display: 'flex', justifyContent: 'flex-end', animation: 'dl-fade .18s ease', zIndex: 20 }}>
         <button onClick={onClose} aria-label="Close details" style={{ flex: 1, border: 'none', background: 'transparent', cursor: 'default' }} />
-        <div role="dialog" aria-modal="true" aria-label="Appointment details" style={{ width: 392, maxWidth: '92vw', background: '#FFF', height: '100%', boxSizing: 'border-box', padding: 24, overflowY: 'auto', animation: 'dl-in .24s ease', boxShadow: '-14px 0 40px rgba(30,42,50,.18)', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div ref={drawerRef} role="dialog" aria-modal="true" aria-label="Appointment details" style={{ width: 392, maxWidth: '92vw', background: '#FFF', height: '100%', boxSizing: 'border-box', padding: 24, overflowY: 'auto', animation: 'dl-in .24s ease', boxShadow: '-14px 0 40px rgba(30,42,50,.18)', display: 'flex', flexDirection: 'column', gap: 18 }}>
           {query.error ? (
             <div style={{ fontSize: 13, color: '#4A5A64' }}>Could not load this appointment: {query.error.message}</div>
           ) : !a || !st || !status ? (
@@ -173,18 +175,24 @@ export function AppointmentDrawer({ appointmentId, overrides, setOverrides, onCl
         </div>
       </div>
 
-      {confirm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(30,42,50,.42)', display: 'grid', placeItems: 'center', padding: 24, animation: 'dl-fade .18s ease', zIndex: 30 }}>
-          <div role="dialog" aria-modal="true" aria-label="Confirm action" style={{ width: 400, maxWidth: '92vw', background: '#FFF', borderRadius: 14, padding: 22, animation: 'dl-up-s .22s ease', boxShadow: '0 20px 50px rgba(30,42,50,.24)' }}>
-            <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-.01em' }}>{confirm.title}</div>
-            <p style={{ margin: '9px 0 18px', fontSize: 13, lineHeight: 1.55, color: '#4A5A64' }}>{confirm.body}</p>
-            <div style={{ display: 'flex', gap: 9, justifyContent: 'flex-end' }}>
-              <button className="s-secondary" onClick={() => setConfirm(null)} style={{ padding: '11px 16px', border: '1px solid #D3DBE0', borderRadius: 10, background: '#FFF', color: '#1E2A32', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Keep as is</button>
-              <button className="s-cta" onClick={confirm.run} style={{ padding: '11px 16px', border: 'none', borderRadius: 10, background: '#B3261E', color: '#FFF', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{confirm.cta}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {confirm && <ConfirmDialog {...confirm} onCancel={() => setConfirm(null)} />}
     </>
+  );
+}
+
+/** Its own component so the focus trap mounts and unmounts with the dialog. */
+function ConfirmDialog({ title, body, cta, run, onCancel }: { title: string; body: string; cta: string; run: () => void; onCancel: () => void }) {
+  const ref = useDialog<HTMLDivElement>(onCancel);
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(30,42,50,.42)', display: 'grid', placeItems: 'center', padding: 24, animation: 'dl-fade .18s ease', zIndex: 30 }}>
+      <div ref={ref} role="dialog" aria-modal="true" aria-label="Confirm action" style={{ width: 400, maxWidth: '92vw', background: '#FFF', borderRadius: 14, padding: 22, animation: 'dl-up-s .22s ease', boxShadow: '0 20px 50px rgba(30,42,50,.24)' }}>
+        <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-.01em' }}>{title}</div>
+        <p style={{ margin: '9px 0 18px', fontSize: 13, lineHeight: 1.55, color: '#4A5A64' }}>{body}</p>
+        <div style={{ display: 'flex', gap: 9, justifyContent: 'flex-end' }}>
+          <button className="s-secondary" onClick={onCancel} style={{ padding: '11px 16px', border: '1px solid #D3DBE0', borderRadius: 10, background: '#FFF', color: '#1E2A32', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Keep as is</button>
+          <button className="s-cta" onClick={run} style={{ padding: '11px 16px', border: 'none', borderRadius: 10, background: '#B3261E', color: '#FFF', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{cta}</button>
+        </div>
+      </div>
+    </div>
   );
 }

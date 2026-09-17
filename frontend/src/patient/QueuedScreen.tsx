@@ -5,6 +5,7 @@ import { ApiError, api } from '../api/client';
 import { useConfig, useWaitlistEntry } from '../api/hooks';
 import type { SlotOffer } from '../api/types';
 import { useToast } from '../components/Toast';
+import { useDialog } from '../components/useDialog';
 import { WINDOW_LABEL, mmss, secondsUntil, whenLabel } from '../lib/format';
 import { PhoneShell } from './PhoneShell';
 import { ErrorState, SecondaryButton, Skeleton, card, label } from './ui';
@@ -124,6 +125,9 @@ interface SheetProps {
 function OfferSheet({ offer, treatmentName, holdMinutes, busy, onAccept, onDecline, onExpired }: SheetProps) {
   const [left, setLeft] = useState(() => secondsUntil(offer.expiresAt));
   const total = holdMinutes * 60;
+  // No Escape here: the sheet asks for a decision, so it is an alertdialog with no way out but
+  // Accept, Decline or the countdown running out. The focus trap still applies.
+  const ref = useDialog<HTMLDivElement>();
 
   useEffect(() => {
     const tick = window.setInterval(() => {
@@ -138,8 +142,8 @@ function OfferSheet({ offer, treatmentName, holdMinutes, busy, onAccept, onDecli
   }, [offer.expiresAt, onExpired]);
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: 'rgba(30,42,50,.42)', display: 'flex', alignItems: 'flex-end', padding: 16, animation: 'dl-fade .2s ease' }} role="dialog" aria-modal="true" aria-label="Slot offer">
-      <div style={{ width: '100%', background: '#FFF', borderRadius: 18, padding: 20, animation: 'dl-up .28s ease', boxShadow: '0 -8px 30px rgba(30,42,50,.2)' }}>
+    <div style={{ position: 'absolute', inset: 0, background: 'rgba(30,42,50,.42)', display: 'flex', alignItems: 'flex-end', padding: 16, animation: 'dl-fade .2s ease' }}>
+      <div ref={ref} role="alertdialog" aria-modal="true" aria-label="Slot offer" style={{ width: '100%', background: '#FFF', borderRadius: 18, padding: 20, animation: 'dl-up .28s ease', boxShadow: '0 -8px 30px rgba(30,42,50,.2)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12 }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#0E7C7B', animation: 'dl-pulse 1.8s ease-out infinite' }} />
           <span style={label({ color: '#0E7C7B' })}>A slot just opened</span>

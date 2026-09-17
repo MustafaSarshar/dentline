@@ -178,6 +178,17 @@ class AppointmentStateMachineTest {
             assertThat(appointment.history.last().type).isEqualTo(HistoryType.RESCHEDULED)
         }
 
+        @Test
+        fun `rescheduling clears a sent reminder so the new time gets one too`() {
+            val appointment = Fixtures.appointment(status = CONFIRMED)
+            appointment.markReminderSent(Fixtures.now)
+            assertThat(appointment.reminderSentAt).isNotNull()
+
+            appointment.reschedule(Instant.parse("2026-09-18T10:15:00Z"), Fixtures.nordvik(), later, "patient")
+
+            assertThat(appointment.reminderSentAt).isNull()
+        }
+
         @ParameterizedTest
         @EnumSource(value = AppointmentStatus::class, names = ["COMPLETED", "CANCELLED", "NO_SHOW"])
         fun `terminal appointments cannot be rescheduled`(status: AppointmentStatus) {

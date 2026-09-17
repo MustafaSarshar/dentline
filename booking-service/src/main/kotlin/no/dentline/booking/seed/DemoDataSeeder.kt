@@ -345,7 +345,8 @@ class DemoDataSeeder(
         val appointment = Appointment.book(appointmentService.nextReference(), practitioner, treatment, patient, start, bookedAt)
         if (publish) events.publishEvent(AppointmentEvent(AppointmentEventType.BOOKED, bookedAt, AppointmentSnapshot.of(appointment)))
 
-        val confirmedAt = minOf(bookedAt + Duration.ofHours(19), clinicTime.now() - Duration.ofMinutes(4))
+        // The morning after the request, which is when a front desk actually works through them.
+        val confirmedAt = minOf(bookedAt + Duration.ofHours(22), clinicTime.now() - Duration.ofMinutes(4))
         val actedAt = when (status) {
             AppointmentStatus.COMPLETED, AppointmentStatus.NO_SHOW -> start + treatment.duration + Duration.ofMinutes(3)
             AppointmentStatus.CANCELLED -> start - Duration.ofHours(26) // "free cancellation up to 24 hours before"

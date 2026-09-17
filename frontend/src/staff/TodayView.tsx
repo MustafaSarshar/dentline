@@ -76,13 +76,15 @@ export function TodayView({ date, timezone, overrides, onOpen }: Props) {
                 {p.appointments.map((a) => {
                   const start = minutesOf(timeOf(a.startTime));
                   const duration = minutesOf(timeOf(a.endTime)) - start;
+                  const height = Math.max(duration * px - 4, 34);
                   return (
                     <AppointmentBlock
                       key={a.id}
                       appointment={a}
                       overrides={overrides}
                       onOpen={onOpen}
-                      style={{ position: 'absolute', left: 7, right: 7, top: (start - dayStart) * px, height: Math.max(duration * px - 4, 34) }}
+                      height={height}
+                      style={{ position: 'absolute', left: 7, right: 7, top: (start - dayStart) * px, height }}
                     />
                   );
                 })}

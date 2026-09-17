@@ -7,7 +7,8 @@ import { ErrorState, label } from '../ui';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 interface Props {
-  practitionerLabel: string;
+  /** Null when the patient chose "first available", which reads differently in the copy below. */
+  practitionerName: string | null;
   today: string;
   availability: UseQueryResult<Availability>;
   onPick: (slot: Slot) => void;
@@ -15,9 +16,11 @@ interface Props {
 }
 
 /** Day strip + slot grid. Availability is one query for seven days; switching days is instant. */
-export function SlotScreen({ practitionerLabel, today, availability, onPick, onJoinWaitlist }: Props) {
+export function SlotScreen({ practitionerName, today, availability, onPick, onJoinWaitlist }: Props) {
   const days = availability.data?.days ?? [];
   const [selected, setSelected] = useState<string>(today);
+  const whoseHours = practitionerName ? `${practitionerName}'s` : "our practitioners'";
+  const whoIsBusy = practitionerName ?? 'any of our practitioners';
 
   // Land on the first day with an opening; the design's "Fully booked" card covers the rest.
   useEffect(() => {
@@ -95,7 +98,7 @@ export function SlotScreen({ practitionerLabel, today, availability, onPick, onJ
             </div>
           ))}
           <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.5, color: '#8A98A1' }}>
-            Openings are calculated live from {practitionerLabel}'s working hours minus booked appointments.
+            Openings are calculated live from {whoseHours} working hours minus booked appointments.
           </p>
         </div>
       ) : (
@@ -105,7 +108,7 @@ export function SlotScreen({ practitionerLabel, today, availability, onPick, onJ
           </div>
           <div style={{ fontSize: 15.5, fontWeight: 600 }}>This day is fully booked</div>
           <p style={{ margin: '7px 0 18px', fontSize: 13, lineHeight: 1.5, color: '#4A5A64' }}>
-            Nothing left on {shortDate(selected)} for {practitionerLabel}. Join the waitlist and we will offer you the first cancellation that fits.
+            Nothing left on {shortDate(selected)} for {whoIsBusy}. Join the waitlist and we will offer you the first cancellation that fits.
           </p>
           <button className="p-primary" onClick={onJoinWaitlist} style={{ width: '100%', padding: 14, border: 'none', borderRadius: 12, background: '#0E7C7B', color: '#FFF', fontSize: 14.5, fontWeight: 600, cursor: 'pointer' }}>
             Join waitlist

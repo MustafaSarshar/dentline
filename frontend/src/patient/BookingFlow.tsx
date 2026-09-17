@@ -152,7 +152,7 @@ export function BookingFlow() {
         <PractitionerScreen practitioners={practitioners.data!} onPick={(p) => { setPractitioner(p); go('slots'); }} />
       ) : screen === 'slots' && t ? (
         <SlotScreen
-          practitionerLabel={pracLabel}
+          practitionerName={practitioner?.name ?? null}
           today={today}
           availability={availability}
           onPick={(s) => {

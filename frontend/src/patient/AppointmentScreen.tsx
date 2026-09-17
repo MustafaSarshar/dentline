@@ -8,7 +8,27 @@ import { initials, whenLabel } from '../lib/format';
 import { styleOf } from '../lib/status';
 import { PhoneShell } from './PhoneShell';
 import type { RescheduleIntent } from './PatientApp';
+import { useDialog } from '../components/useDialog';
 import { Avatar, ErrorState, OutlineTealButton, Skeleton, card, label } from './ui';
+
+/** Its own component so the focus trap mounts and unmounts with the dialog. */
+function CancelDialog({ when, busy, onKeep, onConfirm }: { when: string; busy: boolean; onKeep: () => void; onConfirm: () => void }) {
+  const ref = useDialog<HTMLDivElement>(onKeep);
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: 'rgba(30,42,50,.42)', display: 'grid', placeItems: 'center', padding: 22, animation: 'dl-fade .2s ease' }}>
+      <div ref={ref} role="dialog" aria-modal="true" aria-label="Confirm cancellation" style={{ background: '#FFF', borderRadius: 16, padding: 20, animation: 'dl-up .24s ease' }}>
+        <div style={{ fontSize: 16.5, fontWeight: 700, letterSpacing: '-.01em' }}>Cancel this appointment?</div>
+        <p style={{ margin: '9px 0 18px', fontSize: 13, lineHeight: 1.55, color: '#4A5A64' }}>
+          Your {when} slot will be released to the waitlist right away, and may be taken within minutes. This cannot be undone.
+        </p>
+        <div style={{ display: 'flex', gap: 9 }}>
+          <button className="p-secondary" onClick={onKeep} style={{ flex: 1, padding: 13, border: '1px solid #D3DBE0', borderRadius: 12, background: '#FFF', color: '#1E2A32', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>Keep it</button>
+          <button className="p-danger" onClick={onConfirm} disabled={busy} style={{ flex: 1, padding: 13, border: 'none', borderRadius: 12, background: '#B3261E', color: '#FFF', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>Yes, cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /** "My appointment", opened from the reminder link. */
 export function AppointmentScreen() {
@@ -55,18 +75,12 @@ export function AppointmentScreen() {
       canBack={fromFlow}
       onBack={() => navigate('/')}
       overlay={cancelOpen && a && (
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(30,42,50,.42)', display: 'grid', placeItems: 'center', padding: 22, animation: 'dl-fade .2s ease' }} role="dialog" aria-modal="true" aria-label="Confirm cancellation">
-          <div style={{ background: '#FFF', borderRadius: 16, padding: 20, animation: 'dl-up .24s ease' }}>
-            <div style={{ fontSize: 16.5, fontWeight: 700, letterSpacing: '-.01em' }}>Cancel this appointment?</div>
-            <p style={{ margin: '9px 0 18px', fontSize: 13, lineHeight: 1.55, color: '#4A5A64' }}>
-              Your {whenLabel(a.startTime)} slot will be released to the waitlist right away, and may be taken within minutes. This cannot be undone.
-            </p>
-            <div style={{ display: 'flex', gap: 9 }}>
-              <button className="p-secondary" onClick={() => setCancelOpen(false)} style={{ flex: 1, padding: 13, border: '1px solid #D3DBE0', borderRadius: 12, background: '#FFF', color: '#1E2A32', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>Keep it</button>
-              <button className="p-danger" onClick={() => cancel.mutate()} disabled={cancel.isPending} style={{ flex: 1, padding: 13, border: 'none', borderRadius: 12, background: '#B3261E', color: '#FFF', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>Yes, cancel</button>
-            </div>
-          </div>
-        </div>
+        <CancelDialog
+          when={whenLabel(a.startTime)}
+          busy={cancel.isPending}
+          onKeep={() => setCancelOpen(false)}
+          onConfirm={() => cancel.mutate()}
+        />
       )}
     >
       {appointment.error ? (
