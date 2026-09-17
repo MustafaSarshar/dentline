@@ -11,6 +11,27 @@ then open **http://localhost:3001** (patient booking) and **http://localhost:300
 dashboard). Grafana is on http://localhost:3000, Prometheus on http://localhost:9090. The first
 start seeds a full demo week around today, including a waitlist offer that is counting down.
 
+## Screens
+
+Patient booking is mobile-first; the clinic dashboard is desktop-first. Both are the design
+hand-off's screens, reproduced in React.
+
+| Choose a treatment | Openings computed from working hours |
+|---|---|
+| ![Treatment list](docs/images/patient-treatments.png) | ![Slot picker](docs/images/patient-slots.png) |
+
+| Today, one column per practitioner |
+|---|
+| ![Staff today view](docs/images/staff-today.png) |
+
+| Appointment drawer | Waitlist with live offer countdown |
+|---|---|
+| ![Appointment drawer](docs/images/staff-drawer.png) | ![Waitlist](docs/images/staff-waitlist.png) |
+
+| Grafana, provisioned by compose |
+|---|
+| ![Grafana dashboard](docs/images/grafana.png) |
+
 ---
 
 ## Contents
@@ -193,8 +214,8 @@ docker compose up --build
 |---|---|
 | http://localhost:3001 | Patient booking (`/`), my appointment (`/appointments/{id}`), queue (`/waitlist/{id}`) |
 | http://localhost:3001/staff | Today · Week · Waitlist · Recalls |
-| http://localhost:8081/api/… | booking-service (see the contract) |
-| http://localhost:8082/api/notifications | notification-service |
+| http://localhost:8081/swagger-ui.html | booking-service API, browsable (OpenAPI at `/v3/api-docs`) |
+| http://localhost:8082/swagger-ui.html | notification-service API |
 | http://localhost:9090 | Prometheus |
 | http://localhost:3000/d/dentline-overview | Grafana dashboard (anonymous viewer; admin/admin to edit) |
 
@@ -228,20 +249,27 @@ zone, slot step, offer hold, CORS origins, seed) are also reported by `GET /api/
 ## Testing
 
 ```
-./gradlew test
+./gradlew test              # backend, both modules (Docker must be running)
+cd frontend && npm test     # frontend
 ```
-
-runs both modules (Docker must be running for the integration tests):
 
 | Layer | Where | Covers |
 |---|---|---|
 | Unit | `booking-service/src/test/.../domain` | The state machine (every legal and illegal transition), availability edge cases (end-of-day boundary, treatment longer than the remaining window, lunch breaks, overlapping windows, past slots, first-available merge), waitlist windows and offers. |
 | Integration (Postgres + Kafka via Testcontainers) | `BookingFlowIT`, `AvailabilityIT`, `WaitlistFlowIT`, `ScheduledJobsIT`, `MetricsSummaryIT`, `PrometheusMetricsIT`, `DemoDataSeederIT`, `NotificationServiceIT` | Booking, validation and 409s, publishing and consuming events, the waitlist end to end (book → cancel → offer → accept, decline passes the slot on, expiry sweep), reminders and recalls, the metrics scrape, the seed on any weekday. |
 | Concurrency | `ConcurrentBookingIT` | The double-booking guarantee, described above. |
+| Frontend (Vitest + Testing Library) | `frontend/src/**/*.test.ts(x)` | Reading the API's timestamps without time-zone arithmetic, price and date formatting, ISO weeks, the status palette, the booking form's validation rules, the first booking step, and the dialog behaviour below. |
 
-The containers start once per test JVM and are shared by every test class; each test truncates
-the tables it uses. On a small machine, do not run the suite while `docker compose` is building —
-the containers will time out.
+The backend containers start once per test JVM and are shared by every test class; each test
+truncates the tables it uses. On a small machine, do not run the suite while `docker compose` is
+building — the containers will time out. CI runs both suites on every push.
+
+**Accessibility.** The prototypes did not implement focus management, so the real build adds it:
+[`useDialog`](frontend/src/components/useDialog.ts) moves focus into a dialog when it opens, keeps
+Tab inside it, closes it on Escape, and restores focus to whatever opened it. Only the topmost
+dialog reacts, so Escape in a confirm dialog opened from the drawer does not close both. The
+waitlist offer is an `alertdialog` with no Escape, because it asks for a decision. Status is never
+signalled by colour alone: every badge pairs a dot with a text label.
 
 ## Observability
 
@@ -271,9 +299,10 @@ definitions but are not the same query.
 ```
 booking-service/        Kotlin · Spring Boot · domain, REST, Kafka producer + matcher consumer, jobs, seed
 notification-service/   Kotlin · Spring Boot · Kafka consumers, notification store and endpoint
-frontend/               React 18 · TypeScript · Vite · TanStack Query · react-router
+frontend/               React 18 · TypeScript · Vite · TanStack Query · react-router · Vitest
 docker/                 postgres init, prometheus config, grafana provisioning + dashboard
-docs/                   01 frontend mapping (the design read as a spec) · 02 API contract
+docs/                   01 frontend mapping (the design read as a spec) · 02 API contract · images
+scripts/                screenshots.mjs, which captures the images above from a running stack
 design_handoff_dentline/  The original design prototypes; reference only, not part of the build
 docker-compose.yml      Postgres, Kafka (KRaft), both services, frontend, Prometheus, Grafana
 ```
@@ -329,3 +358,13 @@ consumer), `jobs`, `metrics`, `seed`.
   slot is picked.
 - **Hardening**: rate limiting on the public endpoints, request ids in logs, structured logging,
   tracing (Micrometer Tracing → OTLP), secrets from a vault instead of compose defaults.
+- **Before any public demo deployment**: because there is no authentication, a public URL would let
+  anyone book, cancel and mark no-shows on the demo data. That needs rate limiting and a nightly
+  job that wipes and re-seeds, on top of TLS and a reverse proxy.
+
+---
+
+## License
+
+MIT, see [LICENSE](LICENSE). The files in `design_handoff_dentline/` are the original design
+prototypes the build was made from, kept for reference.
