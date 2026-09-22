@@ -1,5 +1,8 @@
 # Dentline
 
+[![CI](https://github.com/MustafaSarshar/dentline/actions/workflows/ci.yml/badge.svg)](https://github.com/MustafaSarshar/dentline/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0E7C7B.svg)](LICENSE)
+
 Appointment booking for a dental clinic: a patient booking flow with a waitlist, and a front-desk
 dashboard. Two Kotlin/Spring Boot services talk through Kafka; a React frontend talks to both.
 
@@ -95,6 +98,51 @@ flowchart LR
 
 The wire contract is written down in [docs/02-api-contract.md](docs/02-api-contract.md); the
 screen-by-screen mapping that produced it is in [docs/01-frontend-mapping.md](docs/01-frontend-mapping.md).
+
+## What a cancellation sets off
+
+The clearest way to see the two services cooperate is to cancel an appointment. One patient gives
+up a slot, and within seconds another is holding an offer for it, without the cancel request ever
+waiting for any of that.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor P as Patient
+    participant API as booking-service<br/>REST
+    participant DB as PostgreSQL
+    participant K as Kafka<br/>appointment-events
+    participant M as booking-service<br/>waitlist matcher
+    participant N as notification-service
+    actor W as Waiting patient
+
+    P->>API: POST /appointments/{id}/cancel
+    API->>DB: lock appointment, set CANCELLED
+    API-->>P: 200, slot released
+    Note over API,K: published only after the transaction commits
+    API->>K: CANCELLED
+
+    par Waitlist matching
+        K->>M: consume CANCELLED
+        M->>DB: SELECT practitioner FOR UPDATE
+        M->>DB: first eligible entry whose treatment,<br/>windows and practitioner fit
+        M->>DB: SlotOffer, expires in 15 min
+        Note over M,DB: the pending offer holds the window,<br/>so it leaves public availability
+        M->>K: OFFER_SENT (waitlist-events)
+    and Patient notice
+        K->>N: consume CANCELLED
+        N->>N: store "your appointment is cancelled"
+    end
+
+    K->>N: consume OFFER_SENT
+    N->>N: store "a slot just opened", SMS + email
+    W->>API: GET /waitlist/{id} (polled)
+    API-->>W: offer with expiresAt
+    Note over W: the sheet counts down from the server's<br/>deadline, never from a client timer
+```
+
+If nobody matches, the window simply goes back on public availability. If the offer expires, the
+minute sweep releases it and the same matching runs again for the next patient in line.
 
 ## Why events between the services
 
